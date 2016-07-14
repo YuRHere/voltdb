@@ -443,9 +443,14 @@ public class SpScheduler extends Scheduler implements SnapshotCompletionInterest
                     hostLog.fatal("Invocation: " + message);
                     VoltDB.crashLocalVoltDB(e.getMessage(), true, e);
                 }
+            } else if (message.isForDRv1()) {
+                assert false : "DRv1 is not supported";
+                uniqueId = message.getStoredProcedureInvocation().getOriginalUniqueId();
+                // @LoadSinglepartitionTable does not have a valid uid
+                if (UniqueIdGenerator.getPartitionIdFromUniqueId(uniqueId) == m_partitionId) {
+                    m_uniqueIdGenerator.updateMostRecentlyGeneratedUniqueId(uniqueId);
+                }
             }
-            // this message can not be DRv1 if it's not for replay.
-            assert !message.isForReplay() && !message.isForDRv1(): "DRv1 is not supported";
 
             /*
              * If this is CL replay use the txnid from the CL and also
